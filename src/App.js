@@ -1,111 +1,39 @@
-import React, { useState } from "react";
-import Container from "@material-ui/core/Container";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
+import React, { useState, useEffect } from "react";
+import Home from "./pages/Home";
+import Private from "./pages/Private";
 
 export default function App() {
-  const [movieSearch, setMovieSearch] = useState("");
-  const [movieQuery, setmovieQuery] = useState("");
-  const [movieResults, setMovieResults] = useState([]);
-  const [movieNominations, setMovieNominations] = useState([]);
+  const [isSignedIn, setIsSignedIn] = useState(null);
 
-  async function searchMovie(e) {
-    e.preventDefault();
-    await fetch(
-      `http://www.omdbapi.com/?s=${movieSearch}&apikey=${process.env.REACT_APP_OMDB_API_KEY}`
-    )
-      .then((res) => res.json())
-      .then((movies) => setMovieResults(movies.Search));
-    setmovieQuery(movieSearch);
-    setMovieSearch("");
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://apis.google.com/js/platform.js";
+    script.onload = () => initGoogleSignIn();
+    document.body.appendChild(script);
+  }, [isSignedIn]);
+
+  function initGoogleSignIn() {
+    window.gapi.load("auth2", () => {
+      window.gapi.auth2
+        .init({
+          client_id: process.env.REACT_APP_AUTH_CLIENT_ID,
+        })
+        .then(() => {
+          const authInstance = window.gapi.auth2.getAuthInstance();
+          const isSignedIn = authInstance.isSignedIn.get();
+          setIsSignedIn(isSignedIn);
+
+          authInstance.isSignedIn.listen((isSignedIn) => {
+            setIsSignedIn(isSignedIn);
+          });
+        });
+    });
+    window.gapi.load("signin2", () => {
+      window.gapi.signin2.render("login-button", {
+        theme: "dark",
+      });
+    });
   }
 
-  function MovieResult(movie, i) {
-    return (
-      <div key={i} style={{ marginBottom: "10px" }}>
-        • {movie.Title} ({movie.Year}){" "}
-        {
-          movieNominations.indexOf(movie) === -1 ?
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setMovieNominations([...movieNominations, movie])}
-          >
-            Nominate
-          </Button> :
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setMovieNominations([...movieNominations, movie])}
-            disabled
-          >
-            Nominate
-          </Button>
-        }
-      </div>
-    );
-  }
-
-  function MovieNomination(movie, i) {
-    return (
-      <div key={i} style={{ marginBottom: "10px" }}>
-        • {movie.Title} ({movie.Year}){" "}
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            const newMovieNominations = movieNominations;
-            movieNominations.splice(newMovieNominations.indexOf(movie), 1);
-            setMovieNominations([...newMovieNominations]);
-          }}
-        >
-          Remove
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <Container>
-      <h1 style={{marginBottom: "0"}}>THE SHOPPIES</h1>
-      <b>PRESENTED BY VINCENT TIEU</b>
-      <br />
-      <br />
-      <form className="movie-search-form" onSubmit={(e) => searchMovie(e)}>
-        <TextField
-          value={movieSearch}
-          onChange={(e) => setMovieSearch(e.target.value)}
-          label="Enter Movie Name Here"
-          variant="outlined"
-          style={{ width: "100%", marginRight: "10px" }}
-        />
-        <Button variant="contained" color="primary" type="submit">
-          Submit
-        </Button>
-      </form>
-      <div className="movie-columns">
-        <div className="movie-results">
-          {movieQuery !== "" ? (
-            <h3>Movie query "{movieQuery}"</h3>
-          ) : (
-            <h3>Movie query</h3>
-          )}
-          <hr />
-          {movieResults.map((movie, i) => {
-            return MovieResult(movie, i);
-          })}
-        </div>
-        <div className="movie-nominations">
-          <h3>Nominations</h3>
-          <hr />
-          {movieNominations.map((movie, i) => {
-            return MovieNomination(movie, i);
-          })}
-        </div>
-      </div>
-      <div className="footer">
-        I really enjoyed making this! Check out my source code <a href="https://github.com/vincentktieu101/TheShoppies" blank="_target">here</a>.
-      </div>
-    </Container>
-  );
+  return <React.Fragment>{isSignedIn ? <Home /> : <Private />}</React.Fragment>;
 }
