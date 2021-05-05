@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import Home from "./pages/Home";
-import Private from "./pages/Private";
 
 export default function App() {
   const [isSignedIn, setIsSignedIn] = useState(null);
@@ -35,5 +34,5 @@ export default function App() {
     });
   }
 
-  return <React.Fragment>{isSignedIn ? <Home /> : <Private />}</React.Fragment>;
+  return <Home />;
 }
