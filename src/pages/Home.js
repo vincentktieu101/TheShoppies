@@ -32,6 +32,9 @@ export default function Home() {
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach(async (doc) => {
+          if (!doc.data() || !doc.data().nominations) {
+            return;
+          }
           const newMovieNominations = [...movieNominations, ...doc.data().nominations];
           setMovieNominations(newMovieNominations);
           var userRef = db.collection("users").doc(user.ID);
@@ -54,7 +57,7 @@ export default function Home() {
       return;
     }
     await fetch(
-      `http://www.omdbapi.com/?s=${movieSearch}&apikey=${process.env.REACT_APP_OMDB_API_KEY}`
+      `https://www.omdbapi.com/?s=${movieSearch}&apikey=${process.env.REACT_APP_OMDB_API_KEY}`
     )
       .then((res) => res.json())
       .then((movies) => {
