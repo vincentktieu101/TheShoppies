@@ -6,4 +6,4 @@ Entry in Shopify's UX & Web Developer Challenge listed here: https://docs.google
 
 I had a lot of fun making the project, the tech stack is as listed here:
 
-React CRA, Firebase, OMDb API to get movies, Google OAuth, Material-UI
+React CRA, Firebase, OMDb API to get movies, Google OAuth, Netlify, Material-UI
