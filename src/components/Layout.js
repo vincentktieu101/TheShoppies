@@ -13,7 +13,11 @@ export default function Layout(props) {
           <div id="header">
             <div id="brand">
               <h1 style={{ margin: "0 auto" }}>
-                <img src={Shopify} style={{ height: "30px", width: "30px" }} alt="" />{" "}
+                <img
+                  src={Shopify}
+                  style={{ height: "30px", width: "30px" }}
+                  alt=""
+                />{" "}
                 THE SHOPPIES
               </h1>
               <div>PRESENTED BY VINCENT TIEU</div>

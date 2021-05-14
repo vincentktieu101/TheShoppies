@@ -4,9 +4,11 @@ import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 
 import getUser from "../utils/get-user.js";
+import { checkOpenBanner, checkCloseBanner } from "../utils/check-banner.js"
 import Layout from "../components/Layout";
 import MovieNomination from "../components/MovieNomination";
 import MovieResult from "../components/MovieResult";
+
 var firebaseConfig = {
   apiKey: process.env.REACT_APP_AUTH_API_KEY,
   authDomain: process.env.REACT_APP_AUTH_DOMAIN,
@@ -17,7 +19,6 @@ var firebaseConfig = {
   measurementId: process.env.REACT_APP_MEASUREMENT_ID,
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
 
 export default function Home() {
   const user = getUser();
@@ -28,28 +29,64 @@ export default function Home() {
 
   useEffect(() => {
     if (user !== null) {
-      db.collection("users").where("ID", "==", user.ID)
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach(async (doc) => {
-          if (!doc.data() || !doc.data().nominations) {
-            return;
-          }
-          const newMovieNominations = [...movieNominations, ...doc.data().nominations];
-          setMovieNominations(newMovieNominations);
-          var userRef = db.collection("users").doc(user.ID);
-          await userRef.set({ID: user.ID});
-          userRef.update({
-            nominations: [...newMovieNominations]
+      const db = firebase.firestore();
+      db.collection("users")
+        .where("ID", "==", user.ID)
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach(async (doc) => {
+            if (!doc.data() || !doc.data().nominations) {
+              return;
+            }
+            const newMovieNominations = [
+              ...movieNominations,
+              ...doc.data().nominations,
+            ];
+            setMovieNominations(newMovieNominations);
+            const userRef = db.collection("users").doc(user.ID);
+            await userRef.set({ ID: user.ID });
+            userRef.update({
+              nominations: [...newMovieNominations],
+            });
+            checkOpenBanner(newMovieNominations);
           });
-        });
-      })
-      .catch((error) => {
+        })
+        .catch((error) => {
           console.log("Error getting documents: ", error);
-      });
+        });
     }
     setMovieSearch("");
   }, [user && user.ID]);
+
+  async function nominateMovie(movie) {
+    const newMovieNominations = [...movieNominations];
+    newMovieNominations.push(movie);
+    setMovieNominations(newMovieNominations);
+    if (user !== null) {
+      const db = firebase.firestore();
+      const userRef = db.collection("users").doc(user.ID);
+      await userRef.set({ ID: user.ID });
+      userRef.update({
+        nominations: newMovieNominations,
+      });
+    }
+    checkOpenBanner(newMovieNominations.length);
+  }
+
+  async function unnominateMovie(movie) {
+    const newMovieNominations = [...movieNominations];
+    newMovieNominations.splice(newMovieNominations.indexOf(movie), 1);
+    setMovieNominations([...newMovieNominations]);
+    if (user !== null) {
+      const db = firebase.firestore();
+      const userRef = db.collection("users").doc(user.ID);
+      await userRef.set({ ID: user.ID });
+      userRef.update({
+        nominations: [...newMovieNominations],
+      });
+    }
+    checkCloseBanner(newMovieNominations.length);
+  }
 
   async function searchMovie(e) {
     e.preventDefault();
@@ -62,7 +99,7 @@ export default function Home() {
       .then((res) => res.json())
       .then((movies) => {
         if (movies.Error) {
-          setMovieResults([]);  
+          setMovieResults([]);
           return;
         }
         setMovieResults(movies.Search);
@@ -85,33 +122,34 @@ export default function Home() {
           Submit
         </Button>
       </form>
-      {movieNominations.length > 4 && (
-        <div className="success-banner">
-          <h1>{movieNominations.length} NOMINATIONS RECEIVED!</h1>
-        </div>
-      )}
+      <div id="success-banner">
+        <h1>{movieNominations.length} NOMINATIONS RECEIVED!</h1>
+      </div>
       <div className="movie-columns">
         <div className="movie-results">
-          {movieQuery !== "" ? (
-            <h3>Movie query of "{movieQuery}"</h3>
-          ) : (
-            <h3>Movie query</h3>
-          )}
+          <h3>Movie query {movieQuery != "" && `of "${movieQuery}"`}</h3>
           <hr />
           {movieResults.map((movie, i) => {
-            return MovieResult(movie, i, user, movieNominations, setMovieNominations);
+            return (
+              <MovieResult
+                key={i}
+                movie={movie}
+                movieNominations={movieNominations}
+                nominateMovie={nominateMovie}
+              />
+            );
           })}
         </div>
         <div className="movie-nominations">
           <h3>Nominations</h3>
           <hr />
           {movieNominations.map((movie, i) => {
-            return MovieNomination(
-              movie,
-              i,
-              user,
-              movieNominations,
-              setMovieNominations
+            return (
+              <MovieNomination
+                key={i}
+                movie={movie}
+                unnominateMovie={unnominateMovie}
+              />
             );
           })}
         </div>

@@ -8,28 +8,31 @@ body {
   background-color: #f5fcf8;
 }
 
-#header {
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .header-bg {
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
   background-color: white;
 }
 
-#brand {
-  display: flex;
-  flex-direction: column;
-  margin: 10px 0;
-}
-
 #logout-area {
   display: flex;
   align-items: center;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 700px) {
+  #header {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #brand {
+    display: flex;
+    flex-direction: column;
+    margin: 10px 0;
+  }
 }
 
 #footer {
@@ -75,24 +78,55 @@ body {
   }
 }
 
-.success-banner {
+#success-banner {
   background-color: #008060;
   color: white;
   border-radius: 5px;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
   margin-bottom: 30px;
   text-align: center;
-  padding: 10px;
-  animation: fadeInAnimation ease 0.5s;
+  padding: 0px;
+  margin: 0;
+  height: 0;
+  overflow-y: hidden;
+}
+
+#success-banner.open {
+  height: auto;
+  animation: fadeInAnimation ease 0.2s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+#success-banner.close {
+  height: auto;
+  animation: fadeOutAnimation ease 0.2s;
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
 }
 
 @keyframes fadeInAnimation {
   0% {
+    transform: scaleY(0.2);
     opacity: 0;
   }
   100% {
+    transform: scaleY(1);;
+    margin: 20px 0;
     opacity: 1;
+  }
+}
+
+@keyframes fadeOutAnimation {
+  0% {
+    transform: scaleY(1);
+    margin: 20px 0;
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(0.2);
+    height: 0;
+    margin: 0;
+    opacity: 0;
   }
 }
